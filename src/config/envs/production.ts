@@ -2,7 +2,7 @@ export const config = {
   db: {
     type: process.env.DB_TYPE || 'mysql',
     synchronize: false,
-    logging: process.env.DB_LOGGING || false,
+    logging: false,
     replication: {
       master: {
         host: process.env.DB_HOST || 'masterHost',
