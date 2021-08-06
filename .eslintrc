@@ -123,7 +123,7 @@
       },
       { "selector": "property", "format": null },
       { "selector": "typeProperty", "format": null },
-      { "selector": "typeLike", "format": ["StrictPascalCase"] },
+      { "selector": "typeLike", "format": ["PascalCase"] },
       { "selector": "enumMember", "format": ["UPPER_CASE"] }
     ],
     "@typescript-eslint/no-dupe-class-members": "error",
