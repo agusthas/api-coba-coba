@@ -1,6 +1,10 @@
-import { BadRequestException } from '@nestjs/common';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 import { QueryFailedError } from 'typeorm';
 
 import { UserEntity } from './entities/user.entity';
@@ -40,12 +44,17 @@ describe('UsersService', () => {
 
   describe('create', () => {
     it('should create a new user', async () => {
-      const mockId = 'a uuid';
+      jest
+        .spyOn(bcrypt, 'hash')
+        .mockImplementation(async () => Promise.resolve('hashed-password'));
+
       mockUserRepo.create.mockReturnValue(mockUser);
+
       mockUserRepo.save.mockImplementation(async (input) =>
         Promise.resolve({
-          id: mockId,
           ...input,
+          id: 'a uuid',
+          password: 'hashed-password',
         }),
       );
 
@@ -55,8 +64,9 @@ describe('UsersService', () => {
       expect(mockUserRepo.save).toBeCalledWith(mockUser);
 
       expect(result).toEqual({
-        id: mockId,
         ...mockUser,
+        id: 'a uuid',
+        password: 'hashed-password',
       });
     });
 
@@ -68,6 +78,15 @@ describe('UsersService', () => {
 
       await expect(service.create(mockUser)).rejects.toThrow(
         BadRequestException,
+      );
+    });
+
+    it('should throw a internal exception if general error', async () => {
+      mockUserRepo.create.mockReturnValue(mockUser);
+      mockUserRepo.save.mockRejectedValue(new Error());
+
+      await expect(service.create(mockUser)).rejects.toThrow(
+        InternalServerErrorException,
       );
     });
   });

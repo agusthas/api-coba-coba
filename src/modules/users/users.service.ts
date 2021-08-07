@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { hash } from 'bcrypt';
 import { QueryFailedError, Repository } from 'typeorm';
 
 import { CreateUserDto } from './dto/create-user.dto';
@@ -20,6 +21,7 @@ export class UsersService {
     const user = this.userRepository.create(input);
 
     try {
+      user.password = await hash(user.password, 10);
       return await this.userRepository.save(user);
     } catch (error) {
       if (error instanceof QueryFailedError) {
