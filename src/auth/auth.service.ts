@@ -5,6 +5,7 @@ import { plainToClass } from 'class-transformer';
 import { UsersService } from 'src/modules/users/users.service';
 
 import { AuthTokenDto } from './dto/auth-token.dto';
+import { UserTokenClaimsDto } from './dto/user-token-claims.dto';
 import { UserDto } from './dto/user.dto';
 
 @Injectable()
@@ -14,7 +15,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  public async validate(username: string, password: string): Promise<UserDto> {
+  public async validate(
+    username: string,
+    password: string,
+  ): Promise<UserTokenClaimsDto> {
     const user = await this.usersService.getByUsername(username);
 
     const isMatch = await compare(password, user.password);
@@ -23,12 +27,14 @@ export class AuthService {
       throw new UnauthorizedException(`Invalid credentials`);
     }
 
-    return plainToClass(UserDto, user, {
+    return plainToClass(UserTokenClaimsDto, user, {
       excludeExtraneousValues: true,
     });
   }
 
-  public async getAuthToken(user: UserDto): Promise<AuthTokenDto> {
+  public async getAuthToken(
+    user: UserDto | UserTokenClaimsDto,
+  ): Promise<AuthTokenDto> {
     const payload = {
       sub: user.id,
       username: user.username,
