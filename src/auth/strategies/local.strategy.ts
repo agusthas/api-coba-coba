@@ -4,7 +4,6 @@ import { Strategy } from 'passport-local';
 import { Logger } from 'src/common/services';
 
 import { AuthService } from '../auth.service';
-import { LoginDto } from '../dto/login.dto';
 import { UserTokenClaimsDto } from '../dto/user-token-claims.dto';
 
 @Injectable()
@@ -20,10 +19,10 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     this.logger.setContext(LocalStrategy.name);
   }
 
-  public async validate({
-    username,
-    password,
-  }: LoginDto): Promise<UserTokenClaimsDto> {
+  public async validate(
+    username: string,
+    password: string,
+  ): Promise<UserTokenClaimsDto> {
     this.logger.log(`${this.validate.name} was called!`);
     const user = await this.authService.validate(username, password);
 
