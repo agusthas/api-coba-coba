@@ -30,4 +30,21 @@ export class UsersService {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  public async getByUsername(username: string): Promise<UserEntity> {
+    try {
+      const user = await this.userRepository.findOne({ where: { username } });
+
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException();
+    }
+  }
 }

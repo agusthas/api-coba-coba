@@ -5,7 +5,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { QueryFailedError } from 'typeorm';
+import { FindOneOptions, QueryFailedError } from 'typeorm';
 
 import { UserEntity } from './entities/user.entity';
 import { UsersService } from './users.service';
@@ -22,6 +22,7 @@ describe('UsersService', () => {
   const mockUserRepo = {
     create: jest.fn(),
     save: jest.fn(),
+    findOne: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -88,6 +89,29 @@ describe('UsersService', () => {
       await expect(service.create(mockUser)).rejects.toThrow(
         InternalServerErrorException,
       );
+    });
+  });
+
+  describe('getByUsername', () => {
+    it('should get a user by username', async () => {
+      mockUserRepo.findOne.mockResolvedValue(mockUser);
+
+      const result = await service.getByUsername(mockUser.username);
+
+      expect(mockUserRepo.findOne).toBeCalledWith<[FindOneOptions]>({
+        where: { username: mockUser.username },
+      });
+      expect(result).toEqual(mockUser);
+    });
+
+    it('should throw an error', async () => {
+      mockUserRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.getByUsername(mockUser.username)).rejects.toThrow();
+
+      expect(mockUserRepo.findOne).toBeCalledWith<[FindOneOptions]>({
+        where: { username: mockUser.username },
+      });
     });
   });
 });
