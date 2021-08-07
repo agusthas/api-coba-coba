@@ -5,8 +5,8 @@ import { plainToClass } from 'class-transformer';
 import { UsersService } from 'src/modules/users/users.service';
 
 import { AuthTokenDto } from './dto/auth-token.dto';
+import { LoginDto } from './dto/login.dto';
 import { UserTokenClaimsDto } from './dto/user-token-claims.dto';
-import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +14,12 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {}
+
+  public async login(input: LoginDto): Promise<AuthTokenDto> {
+    const user = await this.validate(input.username, input.password);
+
+    return this.getAuthToken(user);
+  }
 
   public async validate(
     username: string,
@@ -32,9 +38,7 @@ export class AuthService {
     });
   }
 
-  private async getAuthToken(
-    user: UserDto | UserTokenClaimsDto,
-  ): Promise<AuthTokenDto> {
+  private async getAuthToken(user: UserTokenClaimsDto): Promise<AuthTokenDto> {
     const payload = {
       sub: user.id,
       username: user.username,

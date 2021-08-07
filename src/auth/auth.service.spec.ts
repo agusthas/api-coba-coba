@@ -6,6 +6,7 @@ import { UsersService } from 'src/modules/users/users.service';
 
 import { AuthService } from './auth.service';
 import { AuthTokenDto } from './dto/auth-token.dto';
+import { LoginDto } from './dto/login.dto';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -108,6 +109,42 @@ describe('AuthService', () => {
       expect(result).toMatchObject<AuthTokenDto>({
         access_token: 'signed-response',
       });
+    });
+  });
+
+  describe('login', () => {
+    const user = {
+      id: 'a uuid',
+      username: 'johndoe',
+    };
+
+    const accessToken = {
+      access_token: 'signed-response',
+    };
+
+    it('should return auth token for valid user', async () => {
+      const validateSpy = jest
+        .spyOn(service, 'validate')
+        .mockResolvedValue(user);
+
+      // https://www.jeffryhouser.com/index.cfm/2019/11/19/How-to-Spy-on-a-Private-Method-with-a-Jasmine
+      const getAuthSpy = jest
+        .spyOn<any, any>(service, 'getAuthToken')
+        .mockResolvedValue(accessToken);
+
+      const userInput: LoginDto = {
+        username: 'johndoe',
+        password: 'password',
+      };
+
+      const result = await service.login(userInput);
+
+      expect(validateSpy).toBeCalledWith(
+        userInput.username,
+        userInput.password,
+      );
+      expect(getAuthSpy).toBeCalledWith(user);
+      expect(result).toMatchObject(accessToken);
     });
   });
 });
