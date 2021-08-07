@@ -8,6 +8,14 @@ import { AuthService } from './auth.service';
 import { AuthTokenDto } from './dto/auth-token.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterInputDto } from './dto/register-input.dto';
+import { UserTokenClaimsDto } from './dto/user-token-claims.dto';
+
+const userFromEntity = {
+  id: 'a uuid',
+  username: 'johndoe',
+  name: 'John Doe',
+  password: 'password',
+};
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -19,6 +27,11 @@ describe('AuthService', () => {
 
   const mockedJwtService = {
     signAsync: jest.fn(),
+  };
+
+  const userTokenClaims: UserTokenClaimsDto = {
+    id: 'a uuid',
+    username: 'johndoe',
   };
 
   beforeEach(async () => {
@@ -44,25 +57,20 @@ describe('AuthService', () => {
   });
 
   describe('validate', () => {
-    const user = {
-      id: 'a uuid',
-      name: 'John Doe',
-      username: 'johndoe',
-      password: 'hashed',
-    };
-    let spy: jest.SpyInstance;
+    let compareSpy: jest.SpyInstance;
 
     beforeEach(() => {
-      mockedUsersService.getByUsername.mockResolvedValue(user);
-      spy = jest
+      mockedUsersService.getByUsername.mockResolvedValue(userFromEntity);
+      compareSpy = jest
         .spyOn(bcrypt, 'compare')
         .mockImplementation(async () => Promise.resolve(true));
     });
+
     it('should validate user', async () => {
       await service.validate('johndoe', 'password');
 
       expect(mockedUsersService.getByUsername).toBeCalledWith('johndoe');
-      expect(spy).toBeCalledTimes(1);
+      expect(compareSpy).toBeCalledTimes(1);
     });
 
     it('should return serialized user (no password)', async () => {
@@ -74,9 +82,11 @@ describe('AuthService', () => {
     it('should throw an error if given invalid credentials', async () => {
       mockedUsersService.getByUsername
         .mockRejectedValueOnce(new Error())
-        .mockResolvedValueOnce(user);
+        .mockResolvedValueOnce(userFromEntity);
 
-      spy.mockImplementationOnce(() => null).mockRejectedValueOnce(false);
+      compareSpy
+        .mockImplementationOnce(() => null)
+        .mockRejectedValueOnce(false);
 
       await expect(service.validate('johndoe', 'password')).rejects.toThrow(
         Error,
@@ -88,15 +98,9 @@ describe('AuthService', () => {
   });
 
   describe('getAuthToken', () => {
-    const user = {
-      id: 'a uuid',
-      username: 'johndoe',
-      name: 'John Doe',
-    };
-
     const payload = {
-      sub: user.id,
-      username: user.username,
+      sub: userTokenClaims.id,
+      username: userTokenClaims.username,
     };
 
     it('should generate access token with payload', async () => {
@@ -104,7 +108,7 @@ describe('AuthService', () => {
 
       // https://stackoverflow.com/questions/48906484/how-to-unit-test-private-methods-in-typescript
       // eslint-disable-next-line @typescript-eslint/dot-notation
-      const result = await service['getAuthToken'](user);
+      const result = await service['getAuthToken'](userTokenClaims);
 
       expect(mockedJwtService.signAsync).toBeCalledWith(payload);
 
@@ -115,11 +119,6 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    const user = {
-      id: 'a uuid',
-      username: 'johndoe',
-    };
-
     const accessToken = {
       access_token: 'signed-response',
     };
@@ -127,7 +126,7 @@ describe('AuthService', () => {
     it('should return auth token for valid user', async () => {
       const validateSpy = jest
         .spyOn(service, 'validate')
-        .mockResolvedValue(user);
+        .mockResolvedValue(userTokenClaims);
 
       // https://www.jeffryhouser.com/index.cfm/2019/11/19/How-to-Spy-on-a-Private-Method-with-a-Jasmine
       const getAuthSpy = jest
@@ -145,7 +144,7 @@ describe('AuthService', () => {
         userInput.username,
         userInput.password,
       );
-      expect(getAuthSpy).toBeCalledWith(user);
+      expect(getAuthSpy).toBeCalledWith(userTokenClaims);
       expect(result).toMatchObject(accessToken);
     });
   });
@@ -157,8 +156,11 @@ describe('AuthService', () => {
       password: 'password',
     };
 
-    it('should register a new user', async () => {
+    beforeEach(() => {
       mockedUsersService.create.mockResolvedValue(registerInput);
+    });
+
+    it('should register a new user', async () => {
       await service.register(registerInput);
 
       expect(mockedUsersService.create).toBeCalledTimes(1);
@@ -166,7 +168,6 @@ describe('AuthService', () => {
     });
 
     it('should return serialized user', async () => {
-      mockedUsersService.create.mockResolvedValue(registerInput);
       const result = await service.register(registerInput);
 
       expect(result).not.toHaveProperty('password');
