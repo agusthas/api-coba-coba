@@ -1,14 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
+import { Payload } from '../dto/payload.dto';
 import { UserTokenClaimsDto } from '../dto/user-token-claims.dto';
-
-interface JwtPayload {
-  sub: string;
-  username: string;
-}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -20,7 +16,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  public validate({ sub, username }: JwtPayload): UserTokenClaimsDto {
+  public validate({ sub, username }: Payload): UserTokenClaimsDto {
+    if (!sub || !username) {
+      throw new InternalServerErrorException(`Failed validate JwtStrategy`);
+    }
+
     return { id: sub, username };
   }
 }
