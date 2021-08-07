@@ -1,9 +1,11 @@
 import { UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from 'src/modules/users/users.service';
 
 import { AuthService } from './auth.service';
+import { AuthTokenDto } from './dto/auth-token.dto';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -11,6 +13,11 @@ describe('AuthService', () => {
   const mockedUsersService = {
     getByUsername: jest.fn(),
   };
+
+  const mockedJwtService = {
+    signAsync: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -18,6 +25,10 @@ describe('AuthService', () => {
         {
           provide: UsersService,
           useValue: mockedUsersService,
+        },
+        {
+          provide: JwtService,
+          useValue: mockedJwtService,
         },
       ],
     }).compile();
@@ -70,6 +81,31 @@ describe('AuthService', () => {
       await expect(service.validate('johndoe', 'password')).rejects.toThrow(
         UnauthorizedException,
       );
+    });
+  });
+
+  describe('getAuthToken', () => {
+    const user = {
+      id: 'a uuid',
+      username: 'johndoe',
+      name: 'John Doe',
+    };
+
+    const payload = {
+      sub: user.id,
+      username: user.username,
+    };
+
+    it('should generate access token with payload', async () => {
+      mockedJwtService.signAsync.mockResolvedValueOnce('signed-response');
+
+      const result = await service.getAuthToken(user);
+
+      expect(mockedJwtService.signAsync).toBeCalledWith(payload);
+
+      expect(result).toMatchObject<AuthTokenDto>({
+        access_token: 'signed-response',
+      });
     });
   });
 });
