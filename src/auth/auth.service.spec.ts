@@ -7,12 +7,14 @@ import { UsersService } from 'src/modules/users/users.service';
 import { AuthService } from './auth.service';
 import { AuthTokenDto } from './dto/auth-token.dto';
 import { LoginDto } from './dto/login.dto';
+import { RegisterInputDto } from './dto/register-input.dto';
 
 describe('AuthService', () => {
   let service: AuthService;
 
   const mockedUsersService = {
     getByUsername: jest.fn(),
+    create: jest.fn(),
   };
 
   const mockedJwtService = {
@@ -145,6 +147,29 @@ describe('AuthService', () => {
       );
       expect(getAuthSpy).toBeCalledWith(user);
       expect(result).toMatchObject(accessToken);
+    });
+  });
+
+  describe('register', () => {
+    const registerInput: RegisterInputDto = {
+      name: 'John Doe',
+      username: 'johndoe',
+      password: 'password',
+    };
+
+    it('should register a new user', async () => {
+      mockedUsersService.create.mockResolvedValue(registerInput);
+      await service.register(registerInput);
+
+      expect(mockedUsersService.create).toBeCalledTimes(1);
+      expect(mockedUsersService.create).toBeCalledWith(registerInput);
+    });
+
+    it('should return serialized user', async () => {
+      mockedUsersService.create.mockResolvedValue(registerInput);
+      const result = await service.register(registerInput);
+
+      expect(result).not.toHaveProperty('password');
     });
   });
 });

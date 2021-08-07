@@ -6,7 +6,9 @@ import { UsersService } from 'src/modules/users/users.service';
 
 import { AuthTokenDto } from './dto/auth-token.dto';
 import { LoginDto } from './dto/login.dto';
+import { RegisterInputDto } from './dto/register-input.dto';
 import { UserTokenClaimsDto } from './dto/user-token-claims.dto';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,6 +21,14 @@ export class AuthService {
     const user = await this.validate(input.username, input.password);
 
     return this.getAuthToken(user);
+  }
+
+  public async register(input: RegisterInputDto): Promise<UserDto> {
+    const user = await this.usersService.create(input);
+
+    return plainToClass(UserDto, user, {
+      excludeExtraneousValues: true,
+    });
   }
 
   public async validate(
