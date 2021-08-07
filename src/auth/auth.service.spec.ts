@@ -99,7 +99,9 @@ describe('AuthService', () => {
     it('should generate access token with payload', async () => {
       mockedJwtService.signAsync.mockResolvedValueOnce('signed-response');
 
-      const result = await service.getAuthToken(user);
+      // https://stackoverflow.com/questions/48906484/how-to-unit-test-private-methods-in-typescript
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      const result = await service['getAuthToken'](user);
 
       expect(mockedJwtService.signAsync).toBeCalledWith(payload);
 

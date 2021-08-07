@@ -32,7 +32,7 @@ export class AuthService {
     });
   }
 
-  public async getAuthToken(
+  private async getAuthToken(
     user: UserDto | UserTokenClaimsDto,
   ): Promise<AuthTokenDto> {
     const payload = {
