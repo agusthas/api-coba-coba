@@ -5,7 +5,6 @@ import { plainToClass } from 'class-transformer';
 import { UsersService } from 'src/modules/users/users.service';
 
 import { AuthTokenDto } from './dto/auth-token.dto';
-import { LoginDto } from './dto/login.dto';
 import { RegisterInputDto } from './dto/register-input.dto';
 import { UserTokenClaimsDto } from './dto/user-token-claims.dto';
 import { UserDto } from './dto/user.dto';
@@ -17,10 +16,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  public async login(input: LoginDto): Promise<AuthTokenDto> {
-    const user = await this.validate(input.username, input.password);
-
-    return this.getAuthToken(user);
+  public async login(input: UserTokenClaimsDto): Promise<AuthTokenDto> {
+    return this.getAuthToken(input);
   }
 
   public async register(input: RegisterInputDto): Promise<UserDto> {

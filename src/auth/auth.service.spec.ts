@@ -6,7 +6,6 @@ import { UsersService } from 'src/modules/users/users.service';
 
 import { AuthService } from './auth.service';
 import { AuthTokenDto } from './dto/auth-token.dto';
-import { LoginDto } from './dto/login.dto';
 import { RegisterInputDto } from './dto/register-input.dto';
 import { UserTokenClaimsDto } from './dto/user-token-claims.dto';
 
@@ -124,26 +123,13 @@ describe('AuthService', () => {
     };
 
     it('should return auth token for valid user', async () => {
-      const validateSpy = jest
-        .spyOn(service, 'validate')
-        .mockResolvedValue(userTokenClaims);
-
       // https://www.jeffryhouser.com/index.cfm/2019/11/19/How-to-Spy-on-a-Private-Method-with-a-Jasmine
       const getAuthSpy = jest
         .spyOn<any, any>(service, 'getAuthToken')
         .mockResolvedValue(accessToken);
 
-      const userInput: LoginDto = {
-        username: 'johndoe',
-        password: 'password',
-      };
+      const result = await service.login(userTokenClaims);
 
-      const result = await service.login(userInput);
-
-      expect(validateSpy).toBeCalledWith(
-        userInput.username,
-        userInput.password,
-      );
       expect(getAuthSpy).toBeCalledWith(userTokenClaims);
       expect(result).toMatchObject(accessToken);
     });
