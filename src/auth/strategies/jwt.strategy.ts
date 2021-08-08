@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -8,6 +12,7 @@ import { UserTokenClaimsDto } from '../dto/user-token-claims.dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+  private logger: Logger = new Logger(JwtStrategy.name);
   constructor(configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -17,6 +22,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   public validate({ sub, username }: Payload): UserTokenClaimsDto {
+    this.logger.log(`${this.validate.name} was called!`);
+
     if (!sub || !username) {
       throw new InternalServerErrorException(`Failed validate JwtStrategy`);
     }
