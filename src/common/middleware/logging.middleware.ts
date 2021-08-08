@@ -15,14 +15,15 @@ export class LoggingMiddleware implements NestMiddleware {
     req.id = req.header(REQUEST_ID_TOKEN_HEADER) || nanoid();
     res.setHeader(REQUEST_ID_TOKEN_HEADER, req.id);
 
-    const user = req.user?.id || '';
-    this.logger.log(
-      `${req.method} ${req.originalUrl} - ${req.ip.replace(
-        '::ffff:',
-        '',
-      )} ${user}`,
-    );
-
+    res.on('finish', () => {
+      const user = req.user?.id || '';
+      this.logger.log(
+        `${req.method} ${res.statusCode} ${req.originalUrl} - ${req.ip.replace(
+          '::ffff:',
+          '',
+        )} ${user}`,
+      );
+    });
     return next();
   }
 }

@@ -2,10 +2,12 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { LoggingMiddleware } from './common/middleware';
 import { ConfigModule } from './config/config.module';
 import { DatabaseModule } from './database/database.module';
+import { UsersModule } from './modules/users/users.module';
 
 /**
  * Import and provide app/global related classses.
@@ -13,7 +15,13 @@ import { DatabaseModule } from './database/database.module';
  * @module
  */
 @Module({
-  imports: [ConfigModule, DatabaseModule, CommonModule],
+  imports: [
+    ConfigModule,
+    DatabaseModule,
+    CommonModule,
+    AuthModule,
+    UsersModule,
+  ],
   providers: [AppService],
   controllers: [AppController],
 })

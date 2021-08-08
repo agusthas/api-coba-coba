@@ -1,4 +1,4 @@
-// import { UserAccessTokenClaims } from '../src/auth/dto';
+import { UserTokenClaimsDto } from '../src/auth/dto/user-token-claims.dto';
 
 export declare global {
   type Nullable<T> = T | null;
@@ -9,11 +9,8 @@ export declare global {
     interface Request {
       id: string;
     }
+
     // Add a User here
-    // interface User extends UserAccessTokenClaims {}
-    // temp
-    interface User {
-      id: string;
-    }
+    interface User extends UserTokenClaimsDto {}
   }
 }
