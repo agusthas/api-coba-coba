@@ -9,6 +9,7 @@ describe('AuthController', () => {
 
   const mockAuthService = {
     register: jest.fn(),
+    login: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -67,6 +68,30 @@ describe('AuthController', () => {
       };
 
       expect(result).toMatchObject(response);
+    });
+  });
+
+  describe('login', () => {
+    it('should login user', async () => {
+      mockAuthService.login.mockResolvedValue(null);
+
+      const requestUser = {
+        id: 'a uuid',
+        username: 'johndoe',
+      };
+
+      const loginInput = {
+        username: 'johndoe',
+        password: 'password',
+      };
+
+      const result = await controller.login(requestUser, loginInput);
+
+      expect(result).toEqual({
+        status: 'success',
+        message: expect.any(String),
+        data: null,
+      });
     });
   });
 });
